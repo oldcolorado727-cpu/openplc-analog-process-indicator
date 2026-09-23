@@ -1,17 +1,16 @@
-# openplc-analog-process-indicator
-Arduino Uno + OpenPLC Structured Text process indicator with analog input and physical LED outputs.
-
 # OpenPLC Analog Process Indicator
 
-My first mechatronics / PLC bench project.
+> **Arduino Uno + OpenPLC Structured Text + physical analog input + real LED outputs**
 
-This project uses a physical potentiometer as an analog process input, an Arduino Uno as the I/O interface, and OpenPLC Structured Text to classify the process into LOW, MEDIUM, and HIGH states.
+My first working mechatronics / PLC bench project. A potentiometer acts as a process input, OpenPLC evaluates the signal in Structured Text, and three physical LEDs indicate LOW, MEDIUM, and HIGH process states.
 
 ![Bench Setup](images/bench-setup.jpg)
 
 ---
 
-## System Architecture
+## Project Overview
+
+This project demonstrates a complete control path from a physical analog signal to PLC logic and physical outputs.
 
 ```text
 Potentiometer
@@ -31,15 +30,17 @@ Digital Outputs
 Green / Yellow / Red LEDs
 ```
 
+**Control concept:** Sense → Decide → Act
+
 ---
 
 ## Process States
 
 | Analog Value | State | Output |
 |---:|---|---|
-| 0–341 | LOW | Green |
-| 342–682 | MEDIUM | Yellow |
-| 683–1023 | HIGH | Red |
+| 0–341 | LOW | Green LED |
+| 342–682 | MEDIUM | Yellow LED |
+| 683–1023 | HIGH | Red LED |
 
 ---
 
@@ -63,6 +64,8 @@ ELSE
 END_IF;
 ```
 
+Source: [`src/main.st`](src/main.st)
+
 ---
 
 ## Hardware
@@ -70,14 +73,10 @@ END_IF;
 - Arduino Uno
 - Breadboard
 - Potentiometer
-- Green LED
-- Yellow LED
-- Red LED
+- Green, yellow, and red LEDs
 - 220 Ω resistors
 - Jumper wires
-- Multimeter
-
----
+- Digital multimeter
 
 ## Software
 
@@ -87,25 +86,11 @@ END_IF;
 
 ---
 
-## What I Learned
-
-- Measuring DC voltage with a multimeter
-- Measuring resistance and continuity
-- Breadboard power distribution
-- Arduino analog input
-- Analog-to-digital conversion
-- OpenPLC I/O mapping
-- IEC 61131-3 Structured Text
-- PLC input/output troubleshooting
-- Testing outputs independently before troubleshooting inputs
-
----
-
-## Troubleshooting
+## Troubleshooting Story
 
 The first successful build powered the green LED, but turning the potentiometer did not change the process state.
 
-I isolated the output side by manually commanding each PLC output:
+Instead of changing the entire system, I isolated the output side and manually commanded each PLC output:
 
 ```text
 Green  ✅
@@ -113,19 +98,33 @@ Yellow ✅
 Red    ✅
 ```
 
-Since all three physical outputs worked, the fault had to be upstream.
+With all three physical outputs proven, the fault had to be upstream.
 
-Following the signal path led to the actual problem:
+Following the signal path revealed the issue:
 
 **Arduino A0 had not been mapped correctly to the OpenPLC analog input.**
 
-After correcting the A0 mapping, rebuilding, and uploading the firmware, the physical potentiometer successfully controlled all three process states.
+After correcting the A0 mapping, rebuilding, and uploading the firmware, the potentiometer successfully controlled all three process states:
 
 ```text
 LOW    → GREEN
 MEDIUM → YELLOW
 HIGH   → RED
 ```
+
+---
+
+## What I Learned
+
+- DC voltage measurement with a multimeter
+- Resistance and continuity testing
+- Breadboard power distribution
+- Arduino analog input and ADC behavior
+- OpenPLC I/O mapping
+- IEC 61131-3 Structured Text
+- PLC input/output troubleshooting
+- Proving outputs independently before chasing input faults
+- Treating I/O mapping as part of the signal path
 
 ---
 
@@ -147,30 +146,32 @@ Correct
 Retest
 ```
 
+The key lesson from this build was not just making the LEDs work. It was learning to narrow the fault, prove known-good sections, and trace the missing signal path.
+
 ---
 
 ## Current Status
 
-✅ Potentiometer input  
-✅ Arduino A0  
-✅ OpenPLC analog mapping  
-✅ Structured Text control logic  
-✅ Green output  
-✅ Yellow output  
-✅ Red output  
-✅ Physical process-state transitions  
+- [x] Potentiometer input
+- [x] Arduino A0
+- [x] OpenPLC analog mapping
+- [x] Structured Text control logic
+- [x] Green output
+- [x] Yellow output
+- [x] Red output
+- [x] Physical process-state transitions
 
 ---
 
 ## Next Steps
 
-- Add hysteresis around process thresholds
-- Add pushbutton reset / acknowledge
-- Add HIGH-state alarm
-- Add motor or fan output
-- Build a PLC state machine
-- Add Node-RED visualization
-- Add Splunk telemetry
+- [ ] Add hysteresis around process thresholds
+- [ ] Add pushbutton acknowledge/reset
+- [ ] Add a latched HIGH-state alarm
+- [ ] Add a motor or fan output
+- [ ] Build a PLC state machine
+- [ ] Add Node-RED visualization
+- [ ] Add Splunk telemetry
 
 ---
 
@@ -180,7 +181,7 @@ I am building a hands-on mechatronics training bench to learn industrial automat
 
 Rather than treating the Arduino, PLC software, meter, sensors, and outputs as separate tools, the goal is to understand how they work together as one control system.
 
-**Sense → Decide → Act**
+**OHM — Follow the Signal.**
 
 ---
 
